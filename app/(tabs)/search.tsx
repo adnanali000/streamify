@@ -46,6 +46,7 @@ const Search = () => {
         data={movies}
         renderItem={({ item }) => <MovieCard {...item} />}
         keyExtractor={(item) => item?.id?.toString()}
+        showsVerticalScrollIndicator={false}
         className='px-5'
         numColumns={3}
         columnWrapperStyle={{

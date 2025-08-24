@@ -1,8 +1,10 @@
 import { icons } from '@/constants/icons';
 import { fetchMovieDetails } from '@/services/api';
 import useFetch from '@/services/useFetch';
+import { isMovieSaved, removeMovie, saveMovie } from '@/utils/storage';
+import { useFocusEffect } from "@react-navigation/native";
 import { router, useLocalSearchParams } from 'expo-router';
-import React from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 interface MovieInfoProps {
@@ -20,6 +22,36 @@ const MovieInfo = ({ label, value }: MovieInfoProps) => (
 const MovieDetail = () => {
   const { id } = useLocalSearchParams();
   const { data: movie, loading } = useFetch(() => fetchMovieDetails(id as string))
+  const [saved, setSaved] = useState(false);
+
+  useFocusEffect(
+  useCallback(() => {
+    if (movie?.id) {
+      checkSaved();
+    }
+  }, [movie?.id]) 
+);
+
+useEffect(() => {
+  if (movie?.id) {
+    checkSaved();
+  }
+}, [movie]);
+   
+
+   const checkSaved = async () => {
+     const result = await isMovieSaved(movie.id);
+    setSaved(result);
+  };
+
+   const handleSaveToggle = async () => {
+    if (saved) {
+      await removeMovie(movie.id);
+    } else {
+      await saveMovie(movie);
+    }
+    checkSaved(); 
+  };
 
   return (
     <View className='bg-primary flex-1'>
@@ -33,13 +65,25 @@ const MovieDetail = () => {
             resizeMode="stretch"
           />
 
-          <TouchableOpacity className="absolute bottom-5 right-5 rounded-full size-14 bg-white flex items-center justify-center">
+
+
+          <TouchableOpacity className="absolute bottom-2 right-24 rounded-full size-14 bg-white flex items-center justify-center">
             <Image
               source={icons.play}
               className="w-6 h-7 ml-1"
               resizeMode="stretch"
             />
           </TouchableOpacity>
+
+          <TouchableOpacity onPress={handleSaveToggle} className="absolute bottom-2 right-5 rounded-full size-14 bg-white flex items-center justify-center">
+            <Image
+              source={saved  ? icons.saved : icons.save}
+              className="w-6 h-7 ml-1"
+              resizeMode="stretch"
+            />
+          </TouchableOpacity>
+
+
         </View>
 
 
